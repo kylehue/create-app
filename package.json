@@ -1,0 +1,39 @@
+{
+  "name": "@kylehue/create-app",
+  "version": "1.1.0",
+  "description": "CLI tool to bootstrap your projects.",
+  "main": "src/index.js",
+  "bin": {
+    "@kylehue/create-app": "bin/create-app",
+    "create-app": "bin/create-app"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "cli",
+    "create-project"
+  ],
+  "dependencies": {
+    "chalk": "^2.4.2",
+    "covgen": "^3.1.0",
+    "esm": "^3.2.18",
+    "inquirer": "^6.2.2",
+    "ncp": "^2.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kylehue/vue-boilerplate.git"
+  },
+  "author": "kylehue",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kylehue/vue-boilerplate/issues"
+  },
+  "homepage": "https://github.com/kylehue/vue-boilerplate#readme",
+  "files": [
+    "bin/",
+    "src/",
+    "templates/"
+  ]
+}
