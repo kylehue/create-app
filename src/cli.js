@@ -1,5 +1,5 @@
-import inquirer from "inquirer";
-import { createProject } from "./index.js";
+const inquirer = require("inquirer");
+const createProject = require("./index.js").createProject;
 
 const defaults = {
 	projectName: "@kylehue/my-app",
@@ -48,6 +48,8 @@ async function promptOptions() {
 	});
 
 	const answers = await inquirer.prompt(questions);
+	console.log("");
+
 	return {
 		projectName: answers.projectName || defaults.projectName,
 		template: answers.template || defaults.template,
@@ -57,7 +59,7 @@ async function promptOptions() {
 	}
 }
 
-export async function cli() {
+module.exports.cli = async function cli() {
 	let options = await promptOptions();
 	await createProject(options);
 }

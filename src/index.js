@@ -1,73 +1,90 @@
-import chalk from "chalk";
-import fs from "fs";
-import ncp from "ncp";
-import path from "path";
-import { promisify } from "util";
-const access = promisify(fs.access);
-const writeFile = promisify(fs.writeFile);
-const copy = promisify(ncp);
+const chalk = require("chalk");
+const fs = require("fs");
+const path = require("path");
+const promisify = require("util").promisify;
+const unpack = require("tar-pack").unpack;
+const editJSON = require("edit-json-file");
+const Listr = require("listr");
+const hyperquest = require("hyperquest");
+const https = require("https");
 
-// Copy files from template
-async function copyTemplateFiles(options) {
-	const ignoredPaths = new RegExp("templates/" + options.template + `/(${
-		[
-			"node_modules",
-			"dist"
-		].join("|")
-	})`);
+function extractFiles(options) {
+	return new Promise((resolve, reject) => {
+		hyperquest(options.tgzURL).pipe(unpack(options.targetDirectory, err => {
+			if (err) {
+				reject(err);
+			} else {
+				resolve();
+			}
+		}));
+	});
+}
 
-	return copy(options.templateDirectory, options.targetDirectory, {
-		clobber: false,
-		filter: fileDir => {
-			return !ignoredPaths.test(fileDir.replace(/\\/g, "/"));
-		}
+// Get template
+function getTemplate(options) {
+	return new Promise((resolve, reject) => {
+		var url = "https://registry.npmjs.org/@kylehue/";
+		var template = `create-app-${options.template}`;
+		https.get(path.join(url, template), res => {
+			if (res.statusCode === 200) {
+				var body = "";
+				res.on("data", data => {
+					body += data;
+				});
+
+				res.on("end", async () => {
+					body = JSON.parse(body);
+					let latestVersion = body["dist-tags"].latest;
+					let tgzURL = body.versions[latestVersion].dist.tarball;
+					options.tgzURL = tgzURL;
+					resolve();
+				});
+			} else {
+				reject(res);
+			}
+		}).on("error", (err) => {
+			reject(err);
+		})
 	});
 }
 
 // Edit package.json
-async function editPackage(options) {
+function editPackage(options) {
 	const filepath = path.resolve(options.targetDirectory, "./package.json");
-	fs.readFile(filepath, 'utf-8', function(err, data) {
-		if (err) throw err;
-
-		data = JSON.parse(data);
-		data.name = options.projectName;
-		data.version = options.version;
-		data.description = options.description;
-		data.author = options.author;
-
-		fs.writeFile(filepath, JSON.stringify(data, null, 2), "utf-8", function writeJSON(err) {
-			if (err) throw err;
-		});
+	const package = editJSON(filepath, {
+		autosave: true
 	});
+
+	package.set("name", options.projectName);
+	package.set("version", options.version);
+	package.set("description", options.description || "");
+	package.set("author", options.author || "");
+	package.save();
 }
 
-export async function createProject(options) {
+module.exports.createProject = async function createProject(options) {
 	// Add target directory to options
 	options = {
 		...options,
 		targetDirectory: path.resolve(process.cwd(), options.projectName)
 	};
 
-	// Check if template exists
-	const templateDir = path.resolve(
-		__dirname,
-		"../templates/" + options.template
-	);
-
-	try {
-		await access(templateDir, fs.constants.R_OK);
-		options.templateDirectory = templateDir;
-	} catch (err) {
-		console.error("%s Invalid template", chalk.red.bold("ERROR!"));
-		process.exit(1);
-	}
-
-	// Create project
-	await copyTemplateFiles(options)
-	await editPackage(options)
+	const tasks = new Listr([{
+			title: "Fetching template",
+			task: async () => await getTemplate(options)
+		},
+		{
+			title: "Extracting files",
+			task: async () => await extractFiles(options).then(() => {
+				setTimeout(() => {
+					editPackage(options);
+				}, 1000);
+			})
+		}
+	])
 
 	// Run
+	await tasks.run();
 	const readyMsg =
 		`
 %s Now Run:
