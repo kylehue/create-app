@@ -21,7 +21,7 @@ function extractFiles(options) {
 }
 
 // Get template
-function getTemplate(options) {
+function fetchTemplate(options) {
 	return new Promise((resolve, reject) => {
 		var url = "https://registry.npmjs.org/@kylehue/";
 		var template = `create-app-${options.template}`;
@@ -50,16 +50,21 @@ function getTemplate(options) {
 
 // Edit package.json
 function editPackage(options) {
-	const filepath = path.resolve(options.targetDirectory, "./package.json");
-	const package = editJSON(filepath, {
-		autosave: true
-	});
+	return new Promise((resolve, reject) => {
+		setTimeout(() => {
+			const filepath = path.resolve(options.targetDirectory, "./package.json");
+			const package = editJSON(filepath, {
+				autosave: true
+			});
 
-	package.set("name", options.projectName);
-	package.set("version", options.version);
-	package.set("description", options.description || "");
-	package.set("author", options.author || "");
-	package.save();
+			package.set("name", options.projectName);
+			package.set("version", options.version);
+			package.set("description", options.description || "");
+			package.set("author", options.author || "");
+			package.save();
+			resolve();
+		}, 1000);
+	})
 }
 
 module.exports.createProject = async function createProject(options) {
@@ -71,14 +76,12 @@ module.exports.createProject = async function createProject(options) {
 
 	const tasks = new Listr([{
 			title: "Fetching template",
-			task: async () => await getTemplate(options)
+			task: async () => await fetchTemplate(options)
 		},
 		{
 			title: "Extracting files",
-			task: async () => await extractFiles(options).then(() => {
-				setTimeout(() => {
-					editPackage(options);
-				}, 1000);
+			task: async () => await extractFiles(options).then(async () => {
+				await editPackage(options);
 			})
 		}
 	])
