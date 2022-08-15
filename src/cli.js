@@ -21,8 +21,8 @@ async function promptOptions() {
 	questions.push({
 		type: "list",
 		name: "template",
-		message: "Choose your template:",
-		choices: ["vue"],
+		message: "Template:",
+		choices: ["vue", "vanilla"],
 		default: defaults.template || undefined
 	});
 
