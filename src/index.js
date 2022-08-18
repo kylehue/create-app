@@ -1,7 +1,6 @@
 const chalk = require("chalk");
 const fs = require("fs");
 const path = require("path");
-const promisify = require("util").promisify;
 const unpack = require("tar-pack").unpack;
 const editJSON = require("edit-json-file");
 const Listr = require("listr");

@@ -1,5 +1,5 @@
 ## `@kylehue/create-app`
-Personal CLI tool to bootstrap new projects
+CLI tool to setup new projects.
 
 ### Installation & Usage
 ```bash
@@ -11,3 +11,4 @@ npm init @kylehue/app
 ```
 ### Templates
 - Vue
+- Vanilla

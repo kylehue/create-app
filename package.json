@@ -1,7 +1,7 @@
 {
   "name": "@kylehue/create-app",
-  "version": "1.2.0",
-  "description": "CLI tool to bootstrap your projects.",
+  "version": "1.2.01",
+  "description": "CLI tool to setup new projects.",
   "main": "src/index.js",
   "bin": {
     "@kylehue/create-app": "bin/create-app",
